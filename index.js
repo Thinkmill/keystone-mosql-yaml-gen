@@ -11,10 +11,15 @@ const typeMap = new Map([
 	[ 'html', 'text' ],
 	[ 'markdown', 'text' ],
 	[ 'textarea', 'text' ],
-	[ 'money', 'numeric' ],
+	[ 'money', 'numeric' ],	// 'numeric(20, 4)' would be better?
 	[ 'geopoint', 'double precision array' ],
+	[ 'textarray', 'text array' ],
 ]);
 
+
+function columnYaml (column, source, type) {
+	return '    - ' + column + ':\n      :source: ' + source + '\n      :type: ' + type;
+}
 
 function generateYaml (keystone) {
 	var chunks = [
@@ -24,22 +29,26 @@ function generateYaml (keystone) {
 
 	Object.keys(keystone.lists).forEach(listKey => {
 		var list = keystone.lists[listKey];
-
+		var collection = keystone.prefixModel(listKey);
+		
 		chunks = chunks.concat(['',
-			'  ' + list.path.toLowerCase() + ':',
+			'  ' + collection + ':',
 			'    :meta:',
-			'      :table: ' + list.path.toLowerCase(),
+			'      :table: ' + collection,
 			'      :extra_props: false',
 			'    :columns:',
-			'    - id:',
-			'      :source: _id',
-			'      :type: text',
+			columnYaml('id', '_id', 'text'),
 		]);
 
 		var ymlFields = Object.keys(list.fields).map(fieldKey => {
 			var field = list.fields[fieldKey];
 			var column = field.path.toLowerCase().replace(/[^a-zA-Z0-9\-_ \.]/g, '').replace(/[^a-zA-Z0-9_]/g, '_');
-
+			
+			// If field type is 'relationship' but it's for multiple, override the pgsql type
+			if (field.type === 'relationship' && field.many) {
+				return columnYaml(column, field.path, 'text array');
+			}
+			
 			// Skip password fields
 			if (field.type === 'password') {
 				return '    # password field excluded';
@@ -48,69 +57,35 @@ function generateYaml (keystone) {
 			// Flatten name out
 			if (field.type === 'name') {
 				return [
-					'    - ' + column + '_first: ',
-					'      :source: ' + field.path + '.first',
-					'      :type: text',
-					'    - ' + column + '_last: ',
-					'      :source: ' + field.path + '.last',
-					'      :type: text',
+					columnYaml(column + '_first', field.path + '.first', 'text'),
+					columnYaml(column + '_last', field.path + '.last', 'text'),
 				].join('\n');
 			}
 
 			// Flatten addresses/locations out
 			if (field.type === 'location') {
 				return [
-					'    - ' + column + '_street1:',
-					'      :source: ' + field.path + '.street1',
-					'      :type: text',
-					'    - ' + column + '_street2:',
-					'      :source: ' + field.path + '.street2',
-					'      :type: text',
-					'    - ' + column + '_building_name:',
-					'      :source: ' + field.path + '.name',
-					'      :type: text',
-					'    - ' + column + '_shop:',
-					'      :source: ' + field.path + '.shop',
-					'      :type: text',
-					'    - ' + column + '_number:',
-					'      :source: ' + field.path + '.number',
-					'      :type: text',
-					'    - ' + column + '_state:',
-					'      :source: ' + field.path + '.state',
-					'      :type: text',
-					'    - ' + column + '_postcode:',
-					'      :source: ' + field.path + '.postcode',
-					'      :type: text',
-					'    - ' + column + '_suburb:',
-					'      :source: ' + field.path + '.suburb',
-					'      :type: text',
-					'    - ' + column + '_geo:',
-					'      :source: ' + field.path + '.geo',
-					'      :type: double precision array',
+					columnYaml(column + '_street1', field.path + '.street1', 'text'),
+					columnYaml(column + '_street2', field.path + '.street2', 'text'),
+					columnYaml(column + '_building_name', field.path + '.name', 'text'),
+					columnYaml(column + '_shop', field.path + '.shop', 'text'),
+					columnYaml(column + '_number', field.path + '.number', 'text'),
+					columnYaml(column + '_state', field.path + '.state', 'text'),
+					columnYaml(column + '_postcode', field.path + '.postcode', 'text'),
+					columnYaml(column + '_suburb', field.path + '.suburb', 'text'),
+					columnYaml(column + '_geo', field.path + '.geo', 'double precision array'),
 				].join('\n');
 			}
 
 			// Flatten files that have been uploaded to s3file
 			if (field.type === 's3file') {
 				return [
-					'    - ' + column + '_filename:',
-					'      :source: ' + field.path + '.filename',
-					'      :type: text',
-					'    - ' + column + '_originalname:',
-					'      :source: ' + field.path + '.originalname',
-					'      :type: text',
-					'    - ' + column + '_path:',
-					'      :source: ' + field.path + '.path',
-					'      :type: text',
-					'    - ' + column + '_size:',
-					'      :source: ' + field.path + '.size',
-					'      :type: int',
-					'    - ' + column + '_filetype:',
-					'      :source: ' + field.path + '.filetype',
-					'      :type: text',
-					'    - ' + column + '_url:',
-					'      :source: ' + field.path + '.url',
-					'      :type: text',
+					columnYaml(column + '_filename', field.path + '.filename', 'text'),
+					columnYaml(column + '_originalname', field.path + '.originalname', 'text'),
+					columnYaml(column + '_path', field.path + '.path', 'text'),
+					columnYaml(column + '_size', field.path + '.size', 'int'),
+					columnYaml(column + '_filetype', field.path + '.filetype', 'text'),
+					columnYaml(column + '_url', field.path + '.url', 'text'),
 				].join('\n');
 			}
 
@@ -120,11 +95,7 @@ function generateYaml (keystone) {
 			}
 
 			var type = typeMap.get(field.type);
-			return [
-				'    - ' + column + ':',
-				'      :source: ' + field.path,
-				'      :type: ' + type,
-			].join('\n');
+			return columnYaml(column, field.path, type);
 		});
 
 		chunks = chunks.concat(ymlFields);
