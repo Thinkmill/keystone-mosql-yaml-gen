@@ -3,20 +3,20 @@
 const mongodbUri = require('mongodb-uri');
 
 const typeMap = new Map([
-	[ 'datetime', 'timestamp' ],
-	[ 'number', 'numeric' ],
-	[ 'relationship', 'text' ],
-	[ 'select', 'text' ],
-	[ 'text', 'text' ],
-	[ 'boolean', 'boolean' ],
-	[ 'code', 'text' ],
-	[ 'email', 'text' ],
-	[ 'html', 'text' ],
-	[ 'markdown', 'text' ],
-	[ 'textarea', 'text' ],
-	[ 'money', 'numeric' ],	// 'numeric(20, 4)' would be better?
-	[ 'geopoint', 'double precision array' ],
-	[ 'textarray', 'text array' ],
+	['datetime', 'timestamp'],
+	['number', 'numeric'],
+	['relationship', 'text'],
+	['select', 'text'],
+	['text', 'text'],
+	['boolean', 'boolean'],
+	['code', 'text'],
+	['email', 'text'],
+	['html', 'text'],
+	['markdown', 'text'],
+	['textarea', 'text'],
+	['money', 'numeric'],	// 'numeric(20, 4)' would be better?
+	['geopoint', 'double precision array'],
+	['textarray', 'text array'],
 ]);
 
 
