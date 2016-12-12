@@ -23,7 +23,7 @@ app.get('/api/keystoneListsYaml', mosqlYaml.createMosqlYamlEndpoint(keystone));
 Or, if there isn't already middleware restricting access, maybe closer to this:
 
 ```javascript
-app.get('/api/keystoneListsYaml', bsMiddleware.buildUserFlagValidator('isAdmin'), mosqlYaml.createMosqlYamlEndpoint(keystone));
+app.get('/api/keystoneListsYaml', new bsMiddleware.UserFlagValidator('isAdmin'), mosqlYaml.createMosqlYamlEndpoint(keystone));
 ```
 Here we've use the [blueshyft middleware package](https://www.npmjs.com/package/@thinkmill/blueshyft-middleware) to restrict access to admins.
 
