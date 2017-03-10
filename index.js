@@ -4,6 +4,7 @@ const mongodbUri = require('mongodb-uri');
 
 const typeMap = new Map([
 	['datetime', 'timestamp'],
+	['date', 'timestamp'],
 	['number', 'numeric'],
 	['relationship', 'text'],
 	['select', 'text'],
@@ -109,6 +110,21 @@ class YamlGenerator {
 						this.columnYaml(column + '_size', field.path + '.size', 'int'),
 						this.columnYaml(column + '_filetype', field.path + '.filetype', 'text'),
 						this.columnYaml(column + '_url', field.path + '.url', 'text'),
+					].join('\n');
+				}
+
+				// Flatten files that have been uploaded to cloudinaryimage
+				if (field.type === 'cloudinaryimage') {
+					return [
+						this.columnYaml(column + '_public_id', field.path + '.public_id', 'text'),
+						this.columnYaml(column + '_version', field.path + '.version', 'int'),
+						this.columnYaml(column + '_signature', field.path + '.signature', 'text'),
+						this.columnYaml(column + '_width', field.path + '.width', 'int'),
+						this.columnYaml(column + '_height', field.path + '.height', 'int'),
+						this.columnYaml(column + '_format', field.path + '.format', 'text'),
+						this.columnYaml(column + '_resource_type', field.path + '.resource_type', 'text'),
+						this.columnYaml(column + '_url', field.path + '.url', 'text'),
+						this.columnYaml(column + '_secure_url', field.path + '.secure_url', 'text'),
 					].join('\n');
 				}
 
