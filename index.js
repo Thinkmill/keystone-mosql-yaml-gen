@@ -2,10 +2,15 @@
 
 const mongodbUri = require('mongodb-uri');
 
+
+// Notes:
+// * Unlike other database systems, in PostgreSQL, there is no performance difference between `varchar`, `varchar(n)` and `text` types
+// * Numbers in JavaScript are 64-bit floating points; equivilant to PGs `double precision` type
+// * Mongo effectively stores datetimes in UTC time; importing as `timestamp with time zone` will also default to UTC while maintaining the correct value
 const typeMap = new Map([
-	['datetime', 'timestamp'],
-	['date', 'timestamp'],
-	['number', 'numeric'],
+	['datetime', 'timestamp with time zone'],
+	['date', 'timestamp with time zone'],
+	['number', 'double precision'],
 	['relationship', 'text'],
 	['select', 'text'],
 	['text', 'text'],
@@ -15,7 +20,7 @@ const typeMap = new Map([
 	['html', 'text'],
 	['markdown', 'text'],
 	['textarea', 'text'],
-	['money', 'numeric'],	// 'numeric(20, 4)' would be better?
+	['money', 'double precision'],	// Should be converted to `numeric(20, 4)` but, initially, just store the JS representation
 	['geopoint', 'double precision array'],
 	['textarray', 'text array'],
 ]);
