@@ -1,12 +1,26 @@
 {
   "name": "@thinkmill/keystone-mosql-yaml-gen",
   "version": "2.2.0",
-  "description": "A basic and somewhat crappy generator of a MoSQL YAML config from KeystoneJS models",
+  "description": "A basic generator of MoSQL YAML config files for KeystoneJS models",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "John Molomby <john@molomby.com>",
+  "contributors": [
+    {
+      "name": "John Molomby",
+      "email": "john@thinkmill.com.au"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thinkmill/keystone-mosql-yaml-gen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Thinkmill/keystone-mosql-yaml-gen/issues"
+  },
+  "homepage": "https://github.com/Thinkmill/keystone-mosql-yaml-gen#readme",
+  "license": "MIT",
   "devDependencies": {
     "eslint": "^3.11.1",
     "eslint-config-keystone": "^3.0.0"
