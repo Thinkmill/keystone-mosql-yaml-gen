@@ -1,6 +1,6 @@
 {
   "name": "@thinkmill/keystone-mosql-yaml-gen",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A basic generator of MoSQL YAML config files for KeystoneJS models",
   "main": "index.js",
   "scripts": {
