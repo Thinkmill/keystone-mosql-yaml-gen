@@ -1,8 +1,19 @@
 {
   "name": "@thinkmill/keystone-mosql-yaml-gen",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "A basic generator of MoSQL YAML config files for KeystoneJS models",
-  "keywords": ["Keystone", "KeystoneJS", "Keystone.js", "MoSQL", "YAML", "pgsql", "PostgreSQL", "export", "report", "reporting"],
+  "keywords": [
+    "Keystone",
+    "KeystoneJS",
+    "Keystone.js",
+    "MoSQL",
+    "YAML",
+    "pgsql",
+    "PostgreSQL",
+    "export",
+    "report",
+    "reporting"
+  ],
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
