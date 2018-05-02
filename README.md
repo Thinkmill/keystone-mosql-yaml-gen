@@ -1,7 +1,14 @@
 MoSQL Yaml Generator for Keystone
 ================================================================================
 
-Tools for generating a MoSQL-compatible YAML document describing the lists and models configured for your Keystone instance.
+Tools for generating a [MoSQL](https://github.com/stripe/mosql)-compatible YAML document describing the lists configured for your [Keystone 4](http://keystonejs.com) instance.
+This config can be supplied to `mosql` to describe the collections and fields to migrate, eg:
+
+```sh
+mosql -c 180502-keystone-MoSQL.yaml [--sql postgres://sql-server/sql-db] [--mongo mongodb://mongo-uri]
+```
+
+You'll need to install [MoSQL](https://github.com/stripe/mosql) and [PostgreSQL](https://www.postgresql.org/download) separately.
 
 
 Usage
@@ -16,13 +23,15 @@ const mosqlYaml = require('@thinkmill/keystone-mosql-yaml-gen');
 // Create a generator instance
 const yamlGenerator = new mosqlYaml.YamlGenerator(keystone);
 
-// Extract the MoSQL yaml for your lists
-const listYaml = yamlGen.generateYaml();
+// Extract the MoSQL YAML for your lists
+const collectionsYaml = yamlGenerator.generateYaml();
+console.log(collectionsYaml);
 ```
 
 ### Express Endpoint
 
-The simplest way to use is to drop the included endpoint in your Express routes, like this:
+A drop-in [ExpressJS](https://expressjs.com) endpoint is included.
+I can be added like this:
 
 ```javascript
 app.get('/api/keystoneListsYaml', mosqlYaml.createMosqlYamlEndpoint(keystone));
@@ -34,37 +43,46 @@ Alternatively, if you wanted to create your own endpoint it might look more like
 const keystone = require('keystone');
 const mosqlYaml = require('@thinkmill/keystone-mosql-yaml-gen');
 
-module.exports = function (req, res, next) {
-	const yamlGen = new mosqlYaml.YamlGenerator(keystone);
+const endpoint = function (req, res, next) {
+	const yamlGenerator = new mosqlYaml.YamlGenerator(keystone);
+	const collectionsYaml = yamlGenerator.generateYaml();
 
-	res.set('content-disposition', `attachment; filename="${yamlGen.getFilename()}"`);
+	res.set('content-disposition', `attachment; filename="${yamlGenerator.getFilename()}"`);
 	res.set('content-Type', 'application/x-yaml');
-	res.send(yamlGen.generateYaml());
+	res.send(collectionsYaml);
 };
 ```
 
 
-Notes
+Types
 --------------------------------------------------------------------------------
 
 ### Strings
 
 Unlike other database systems, in PostgreSQL, there is no performance difference between `varchar`, `varchar(n)` and `text` types.
+We preference `text`.
 
 ### Numbers
 
-Numbers in JavaScript are 64-bit floating points; equivilant to PGs `double precision` type.
-Note that for `Money` fields we import the existing representation as a `double precision`.
-These values should be converted to a lossless type before being manipulated (eg. `numeric(20, 4)`).
+Numbers in JavaScript are 64-bit floating points; equivalent to PGs `double precision` type.
+
+Note that for `Money` fields are also imported as `double precision`.
+These values should be converted to a lossless type before being manipulated (eg. `numeric(20, 4)` or similar).
 
 ### Dates
 
-JavaScript `Date` objects have not timezone information; they're Epoch-base and are effectively in UTC.
-Importing as `timestamp with time zone` will also default to UTC while maintaining the correct value.
+JavaScript `Date` objects have no timezone information -- they're epoch-base and effectively in UTC.
+Importing as `timestamp with time zone` will maintaining the correct value while defaulting the time zone stored to UTC.
 
 `Date` objects also maintain only millisecond precision (ie. 1/1,000 of a second).
 PostgreSQL on the other hand, defaults to microsecond precision for it's `timestamp` types (ie. 1/1,000,000 of a second).
 This tool sticks with the Postgres default but column types could later be altered to `timestamp (3) with time zone` without any data loss.
+
+### Passwords
+
+Currently passwords are intentionally excluded from the dumped fields.
+
+(TODO: Add configuration options for this)
 
 ### Simple Type Mappings
 
@@ -91,7 +109,7 @@ Values are mapped to individual columns where possible:
 
 ### Complex Type Mappings
 
-Some of the more complete, mulit-value types are mapped to muliple columns:
+Some of the more complex, multi-value types are mapped to multiple columns:
 
 #### `name` Type
 
@@ -112,7 +130,7 @@ Some of the more complete, mulit-value types are mapped to muliple columns:
 | `(key).state` | `(key)_state` | `text` |
 | `(key).postcode` | `(key)_postcode` | `text` |
 | `(key).suburb` | `(key)_suburb` | `text` |
-| `(key).geo` | `(key)_geo` | `double` |
+| `(key).geo` | `(key)_geo` | `double precision array` |
 
 #### `s3file` Type
 
@@ -140,6 +158,15 @@ Some of the more complete, mulit-value types are mapped to muliple columns:
 | `(key).secure_url` | `(key)_secure_url` | `text` |
 
 
+Naming
 --------------------------------------------------------------------------------
 
-Developed by [Thinkmill](http://www.thinkmill.com.au) for [Keystone.js](http://keystonejs.com).
+Column names are forced to lowercase and restricted to the character set `[a-zA-Z0-9_]`.
+Any whitespace, hyphens or stops are replaced with underscores.
+
+(TODO: Add configuration options for this)
+
+
+--------------------------------------------------------------------------------
+
+Developed by [John Molomby](https://github.com/molomby) at [Thinkmill](http://www.thinkmill.com.au) for [Keystone.js](http://keystonejs.com).
