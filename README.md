@@ -2,11 +2,7 @@ MoSQL Yaml Generator for Keystone
 ================================================================================
 
 Tools for generating a [MoSQL](https://github.com/stripe/mosql)-compatible YAML document describing the lists configured for your [Keystone 4](http://keystonejs.com) instance.
-This config can be supplied to `mosql` to describe the collections and fields to migrate, eg:
-
-```sh
-mosql -c 180502-keystone-MoSQL.yaml [--sql postgres://sql-server/sql-db] [--mongo mongodb://mongo-uri]
-```
+This can be useful for exporting data from a Keystone instance or streaming updates to a reporting database in near real-time.
 
 You'll need to install [MoSQL](https://github.com/stripe/mosql) and [PostgreSQL](https://www.postgresql.org/download) separately.
 
@@ -14,7 +10,7 @@ You'll need to install [MoSQL](https://github.com/stripe/mosql) and [PostgreSQL]
 Usage
 --------------------------------------------------------------------------------
 
-### Basic Usage
+### Generating the Config
 
 ```javascript
 const keystone = require('keystone');
@@ -28,16 +24,21 @@ const collectionsYaml = yamlGenerator.generateYaml();
 console.log(collectionsYaml);
 ```
 
-### Express Endpoint
+#### Express Endpoint
 
 A drop-in [ExpressJS](https://expressjs.com) endpoint is included.
-I can be added like this:
+This can be useful if your schema is often changing; a process could be configured to periodically download an up-to-date config.
+
+Add the endpoint to your Express app like this:
 
 ```javascript
+const keystone = require('keystone');
+const mosqlYaml = require('@thinkmill/keystone-mosql-yaml-gen');
+
 app.get('/api/keystoneListsYaml', mosqlYaml.createMosqlYamlEndpoint(keystone));
 ```
 
-Alternatively, if you wanted to create your own endpoint it might look more like this:
+Alternatively, create your own endpoint:
 
 ```javascript
 const keystone = require('keystone');
@@ -52,6 +53,17 @@ const endpoint = function (req, res, next) {
 	res.send(collectionsYaml);
 };
 ```
+
+### Consuming the Config
+
+The config generated describes the collections and fields to copy.
+It's supplied to `mosql` like this:
+
+```sh
+mosql -c 180502-keystone-MoSQL.yaml [--sql postgres://sql-server/sql-db] [--mongo mongodb://mongo-uri]
+```
+
+See the [MoSQL](https://github.com/stripe/mosql) docs for more options.
 
 
 Types
